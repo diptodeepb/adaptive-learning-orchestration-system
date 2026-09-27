@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Layout from './components/Layout';
 import Dashboard from './features/dashboard/Dashboard';
 import Analytics from './features/analytics/Analytics';
-import SessionLogs from './features/logs/SessionLogs';
+import SessionLogs from './features/session-logs/SessionLogs';
 import Settings from './features/settings/Settings';
 
 function App() {
