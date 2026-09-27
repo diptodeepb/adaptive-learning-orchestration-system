@@ -2,11 +2,31 @@ import React, { useState } from 'react';
 import { BookOpen, Target, Brain, Loader2, Database, Code, ShieldAlert, Cpu } from 'lucide-react';
 
 export default function Dashboard() {
-  const [subjectId, setSubjectId] = useState('u63386');
-  const [learnerState, setLearnerState] = useState<any>(null);
-  const [decisionData, setDecisionData] = useState<any>(null);
+  const [subjectId, setSubjectId] = useState(() => localStorage.getItem('dash_subject_id') || 'u63386');
+  const [learnerState, setLearnerState] = useState<any>(() => {
+    const saved = localStorage.getItem('dash_learner_state');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [decisionData, setDecisionData] = useState<any>(() => {
+    const saved = localStorage.getItem('dash_decision_data');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  React.useEffect(() => {
+    localStorage.setItem('dash_subject_id', subjectId);
+  }, [subjectId]);
+
+  React.useEffect(() => {
+    if (learnerState) localStorage.setItem('dash_learner_state', JSON.stringify(learnerState));
+    else localStorage.removeItem('dash_learner_state');
+  }, [learnerState]);
+
+  React.useEffect(() => {
+    if (decisionData) localStorage.setItem('dash_decision_data', JSON.stringify(decisionData));
+    else localStorage.removeItem('dash_decision_data');
+  }, [decisionData]);
 
   const runSimulation = async (overrideId?: string) => {
     setLoading(true);

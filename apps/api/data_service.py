@@ -6,13 +6,17 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).parent / '.env')
 HF_TOKEN = os.getenv("HF_TOKEN")
-TARGET_REPO = "diptodeepb/ednet-student-states"
+TARGET_REPO = os.getenv("HF_TARGET_REPO")
 
-# We cache the dataset in memory after loading it once so the API responds instantly.
+import threading
+
 _cached_df = None
+_download_lock = threading.Lock()
 
 def get_aggregated_data():
     global _cached_df
+    
+    # Fast path if already loaded
     if _cached_df is not None:
         return _cached_df
         
@@ -20,15 +24,21 @@ def get_aggregated_data():
         print("WARNING: HF_TOKEN not found in .env. Using mock fallback data.")
         return None
 
-    try:
-        print(f"Downloading aggregated student states from {TARGET_REPO}...")
-        # Since this aggregated dataset is tiny (a few MBs), we just load the whole thing into memory
-        ds = load_dataset(TARGET_REPO, split="train", token=HF_TOKEN)
-        _cached_df = ds.to_pandas()
-        return _cached_df
-    except Exception as e:
-        print(f"WARNING: Failed to load from Hugging Face: {e}")
-        return None
+    # Wait for lock if another thread is downloading
+    with _download_lock:
+        # Check again in case it was loaded while waiting for the lock
+        if _cached_df is not None:
+            return _cached_df
+            
+        try:
+            print(f"Downloading aggregated student states from {TARGET_REPO}...")
+            # Since this aggregated dataset is tiny (a few MBs), we just load the whole thing into memory
+            ds = load_dataset(TARGET_REPO, split="train", token=HF_TOKEN)
+            _cached_df = ds.to_pandas()
+            return _cached_df
+        except Exception as e:
+            print(f"WARNING: Failed to load from Hugging Face: {e}")
+            return None
 
 def fetch_learner_state(subject_id: str) -> LearnerState:
     """

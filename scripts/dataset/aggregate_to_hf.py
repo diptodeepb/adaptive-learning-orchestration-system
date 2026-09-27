@@ -11,7 +11,7 @@ env_path = Path(__file__).parent.parent.parent / 'apps' / 'api' / '.env'
 load_dotenv(env_path)
 HF_TOKEN = os.getenv("HF_TOKEN")
 
-TARGET_REPO = "diptodeepb/ednet-student-states"
+TARGET_REPO = os.getenv("HF_TARGET_REPO")
 
 def aggregate_and_push_to_hf():
     if not HF_TOKEN:

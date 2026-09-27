@@ -1,10 +1,11 @@
 fastapi
 uvicorn[standard]
 pydantic
-pydantic-settings
 litellm
 python-dotenv
-supabase
 langgraph
-langchain
-langchain-core
+datasets
+pandas
+pyarrow
+supabase
+duckdb
