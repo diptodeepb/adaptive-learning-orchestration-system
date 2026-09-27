@@ -51,8 +51,20 @@ def run_process(name, cmd, cwd=None, env_vars=None):
     return proc
 
 def run_backend():
-    # --use-colors forces Uvicorn to keep colors even when piped
-    return run_process("backend", [".venv/bin/uvicorn", "apps.api.main:app", "--reload", "--port", "8000", "--use-colors"])
+    cmd = [".venv/bin/uvicorn", "apps.api.main:app", "--reload", "--port", "8000", "--use-colors"]
+    
+    # Parse .gitignore and dynamically inject it into watchfiles
+    if os.path.exists(".gitignore"):
+        with open(".gitignore", "r") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    # Uvicorn/pathlib doesn't support absolute globs starting with /
+                    if line.startswith("/"):
+                        line = line[1:]
+                    cmd.extend(["--reload-exclude", line])
+                    
+    return run_process("backend", cmd)
 
 def run_frontend():
     if os.path.exists("apps/web"):
@@ -62,15 +74,8 @@ def run_frontend():
         print("Warning: apps/web directory not found, frontend will not be started.")
     return None
 
-def start_ollama():
-    print("Ensuring Ollama is running...")
-    subprocess.Popen(["ollama", "serve"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    time.sleep(2)
-    print("Ollama should be ready.")
-
 if __name__ == "__main__":
     check_env()
-    start_ollama()
     
     backend_proc = run_backend()
     frontend_proc = run_frontend()

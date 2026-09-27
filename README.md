@@ -1,44 +1,43 @@
-# AI-Based Adaptive Learning Orchestration System
+# ALOS: Adaptive Learning Orchestration System
 
-An intelligent, multi-agent platform designed to orchestrate adaptive learning interventions based on learner mastery and system uncertainty. 
+An intelligent, multi-agent platform designed to orchestrate pedagogical interventions based on learner mastery and system uncertainty, utilizing the EDNet dataset.
 
-This research project leverages a deterministic statistical agent alongside a local Large Language Model (LLM) to negotiate pedagogical strategies in real-time, resolving conflicts dynamically to ensure the most effective student interventions.
+This research project leverages a deterministic statistical agent alongside a dynamic LLM Gateway to negotiate learning strategies in real-time. It resolves pedagogical conflicts dynamically using a LangGraph state machine.
 
-## 🚀 Tech Stack
+## 🚀 Technology Stack
 
-- **Backend Architecture**: [FastAPI](https://fastapi.tiangolo.com/) & [LangGraph](https://python.langchain.com/v0.1/docs/langgraph/) (Stateful multi-agent workflows)
-- **Local LLM Integration**: [Ollama](https://ollama.com/) running **Qwen3-4B** via `langchain-ollama` for free, private, low-latency inference.
-- **Frontend Dashboard**: React (SPA), Vite, and [Tailwind CSS v3](https://tailwindcss.com/) featuring premium glassmorphism, native dark mode, and cutting-edge View Transitions.
-- **Database & Auth**: Local Dockerized [Supabase](https://supabase.com/) stack.
+- **Backend**: [FastAPI](https://fastapi.tiangolo.com/) & [LangGraph](https://python.langchain.com/v0.1/docs/langgraph/) (Stateful multi-agent workflows).
+- **LLM Gateway**: `litellm` powering seamless routing across Groq, Mistral, and OpenRouter for real-time pedagogical reasoning.
+- **Frontend**: React (SPA), Vite, and [Tailwind CSS v3](https://tailwindcss.com/) featuring fully responsive mobile design, native dark mode, custom scrollbars, and sleek UI aesthetics.
+- **Data Source**: EDNet student telemetry streamed directly and aggregated from HuggingFace (`hf://datasets/mgor/EDNet`).
 
 ## 🧠 System Architecture
 
-The core orchestration loop runs on LangGraph and processes a `LearnerState` (mastery and uncertainty) through a multi-agent pipeline:
+The core orchestration loop runs on LangGraph and processes a `LearnerState` through a multi-agent pipeline:
 
-1. **Knowledge Agent**: A deterministic agent that recommends actions (`LEARN`, `PRACTICE`, `CHALLENGE`) based on strict mastery thresholds.
-2. **Pedagogical Agent**: An LLM-powered agent that reasons over the state—particularly focusing on system uncertainty—and outputs strict Pydantic JSON proposals.
-3. **Deterministic Validator**: A gatekeeper that resolves disagreements. If the agents conflict and uncertainty is dangerously high (> 0.6), the Validator overrides the decision to trigger a diagnostic `ASSESS` intervention.
+1. **Knowledge Agent**: A deterministic agent that recommends actions (e.g., `LEARN`, `PRACTICE`, `CHALLENGE`) based on statistical mastery thresholds.
+2. **Pedagogical Agent**: An LLM-powered reasoning engine that evaluates the student's telemetry to output a strict pedagogical JSON proposal.
+3. **Orchestrator Gateway**: A state machine node that negotiates disagreements. It resolves conflicts using predefined heuristic parameters (such as confidence thresholds) configured dynamically in the UI.
 
 ## 🛠️ Prerequisites
 
-Before you begin, ensure you have the following installed on your Linux environment:
-- **Python 3.10+** (Tested on Python 3.14.7)
-- **Node.js (npm & npx)**
-- **Docker Engine** (Required for the local Supabase stack)
-- **Ollama** (Running locally)
+Before you begin, ensure you have the following installed:
+- **Python 3.10+**
+- **Node.js (v18+) & npm**
 
 ## 📦 Installation & Setup
 
-1. **Clone the repository and enter the directory**:
+1. **Clone the repository**:
    ```bash
+   git clone <repo-url>
    cd adaptive-learning-orchestration
    ```
 
-2. **Set up the Python Virtual Environment**:
+2. **Set up the Python Environment**:
    ```bash
    python3 -m venv .venv
    source .venv/bin/activate
-   pip install fastapi uvicorn langgraph pydantic langchain-ollama
+   pip install fastapi uvicorn langgraph pydantic litellm pandas pyarrow
    ```
 
 3. **Install Frontend Dependencies**:
@@ -48,43 +47,39 @@ Before you begin, ensure you have the following installed on your Linux environm
    cd ../..
    ```
 
-4. **Pull the Local LLM**:
-   Make sure the Ollama service is running, then download the Qwen model:
-   ```bash
-   ollama pull qwen3:4b
+4. **Environment Variables**:
+   Create a `.env` file in `apps/api/` (or run export commands) to set up your API keys for the LLM providers you intend to use:
+   ```env
+   GROQ_API_KEY=your_key
+   MISTRAL_API_KEY=your_key
+   OPENROUTER_API_KEY=your_key
    ```
 
 ## 💻 Running the Application
 
-This project includes a built-in bootstrapper script (`start.py`) that manages the backend and frontend simultaneously.
+This project includes a built-in bootstrapper script (`start.py`) that handles booting and piping both the backend and frontend simultaneously.
 
-**1. Start the Database Layer (Supabase)**
-Open a terminal and spin up your ephemeral, local database stack:
-```bash
-sudo systemctl start docker   # Ensure Docker is running
-npx supabase start
-```
-*(This gives you a full Postgres DB + Auth + Studio UI at `http://localhost:54323`)*
-
-**2. Start the Application Layer**
-Open a new terminal in the project root and run:
+Run the following command in the project root:
 ```bash
 python3 start.py
 ```
+
 This script will automatically:
-- Ensure Ollama is running in the background.
-- Stream **FastAPI Backend** logs in `[backend]` Blue.
-- Stream **Vite Frontend** logs in `[frontend]` Yellow.
+- Stream **FastAPI Backend** logs.
+- Stream **Vite Frontend** logs.
+- Strip absolute paths from `.gitignore` for seamless `uvicorn` hot-reloading.
 
-**3. Access the Dashboard**
-- Open **[http://localhost:5173](http://localhost:5173)** in your browser to view the interactive Student Dashboard.
-- The backend API docs are available at **[http://localhost:8000/docs](http://localhost:8000/docs)**.
+**Access the System:**
+- **ALOS UI Dashboard**: [http://localhost:5173](http://localhost:5173)
+- **Backend API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
 
-## 🧹 Cleaning Up
+## 🧩 Key Features
+
+- **Real-Time Orchestration**: Watch the agents negotiate interventions live on the Diagnostics Dashboard.
+- **EDNet Analytics**: Monitor global dataset subject mastery and track tracked metrics via a live radar mapping in the Analytics view.
+- **Execution Details**: A fully paginated, live system log tracking all orchestrator state transitions and event messages.
+- **Dynamic Configuration**: Adjust LLM routing, orchestrator confidence thresholds, and tracing memory on the fly in the Settings panel.
+
+## 🧹 Stopping the System
 
 To gracefully stop the FastAPI and Vite servers, press `Ctrl+C` in the terminal running `start.py`.
-
-To stop the Supabase database and completely wipe the local volumes to start fresh next time:
-```bash
-npx supabase stop --no-backup
-```
